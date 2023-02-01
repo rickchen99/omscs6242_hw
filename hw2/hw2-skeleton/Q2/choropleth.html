@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+	<!-- add title -->
+    <title>choropleth map </title>
+   <meta charset="utf-8">
+     <!-- import required libraries here -->
+   <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+  <script type="text/javascript" src="../lib/d3-tip.min.js"></script>
+   <script type="text/javascript" src="../lib/d3-geo-projection.v2.min.js"></script>
+   <script type="text/javascript" src="../lib/d3-legend.min.js"></script>
+
+	
+    <style type="text/css">
+        .title{
+       font-size: 20px;
+      font-family: Sans-Serif;
+      text-anchor: middle;
+      font-weight: bold;
+      text-align: center;
+
+    }
+        .dropdown{
+            left: 20%;
+            right: auto;
+            position: absolute;
+            top: 76px;
+
+        }
+        .countries{
+            fill: #ffffff;
+        }
+        .d3-tip {
+
+          line-height: 1.5;
+          font-family:"avenir next", Arial, sans-serif;
+          padding: 6px;
+          background: rgba(0, 0, 0, 0.6);
+          color:orange;
+          border-radius: 5px;
+          font-size: 12px;
+       }
+        .d3-tip.n:after {
+
+           box-sizing: border-box;
+            display: inline;
+            font-size: 10px;
+            width: 100%;
+             line-height: 1.5;
+            color: rgba(0, 0, 0, 0.6);
+            position: absolute;
+            pointer-events: none;
+
+     }
+	
+	</style>
+</head>
+
+
+
+<body>
+    <!-- Add heading for the visualization -->
+ 	<div class="title">Average Rating of Board Games Across the World</div>   
+    <!-- Create dropdown element here. Options should be added after reading in game file, they should not be created here.-->
+    <select id="gameDropdown" class="gameDropdown"></select>
+    <!-- append visualization svg to this div-->
+    <div id="choropleth"></div>
+	
+
+    <script>
+	
+		// enter code to define margin and dimensions for svg
+	var margin = {top: 80, right: 140, bottom: 50, left: 150},
+		width = (1500 - margin.left-margin.right)/1.5,
+		height = (1500 - margin.top - margin.bottom)/1.5;
+		
+		// enter code to create select, and two ranges for path and legend
+		var svg=d3.select('body').append('svg')
+         .attr('width',width + margin.left + margin.right)
+         .attr('height',height + margin.top + margin.bottom)
+		 .attr('id', 'choropleth');
+		 
+		// for path
+		// var svg1 = svg
+		
+		// var svg1_or = svg;
+		var svg1 = svg.append('g')
+					  .attr('id', 'countries')
+					  .attr("class", "countries"); 
+		
+		// for legend
+		var svg2 = svg.append('g')
+					  .attr('id', 'legend'); 
+		 
+		 
+		// user id
+        svg.append('text')
+		  .attr('id', 'credit')
+          .attr('x',(width+180))
+          .attr('y',height+100)
+          .attr('text-anchor','middle')
+          .style('font-size','16px')
+          .style("fill", "green")
+          .text('hchen652');		
+		 
+
+		// enter code to create color scale
+         var color=d3.scaleQuantile().range(['#ffffcc','#a1dab4','#41b6c4','#225ea8']);
+
+		
+		// enter code to define tooltip
+
+        var tip =d3.tip().attr('class', 'd3-tip').offset([-10,0]);
+
+        
+		// enter code to define projection and path required for Choropleth
+
+        var projection=d3.geoMercator().scale(140).translate( [width / 2+150, height / 1.3+200]);
+
+
+        var path =d3.geoPath().projection(projection);
+
+
+		// define any other global variables
+        var promises=[
+            d3.json('world_countries.json'),
+            d3.csv('ratings-by-country.csv')
+        ];
+
+        Promise.all(promises
+            // enter code to read files
+
+        ).then(function (values) {
+            // enter code to call ready() with required arguments
+            var world=values[0];
+            var gameDate=values[1];
+            ready(world,gameDate)
+
+
+        });
+		
+		// this function should be called once the data from files have been read
+		// world: topojson from world_countries.json
+		// gameData: data from ratings-by-country.csv
+		
+        function ready( world, gameData) {
+
+            // enter code to extract all unique games from gameData
+            var nest_data = d3.nest()
+                      .key(function (d) {
+                        return d.Game
+                      }).sortKeys(d3.ascending)
+                      .entries(gameData);
+
+            // console.log(nest_data);
+
+            // enter code to append the game options to the dropdown
+            svg.append("text").attr("transform", "translate("+ 30+","+10  +")")
+              .attr("class", "text").text("Select Board Game:    ");
+
+             d3.select("#gameDropdown")
+              .selectAll("option")
+              .data(nest_data)
+              .enter()
+              .append("option")
+			 // .attr('id','dropdown')
+              .attr("value", function(option) { return option.key; })
+              .text(function(option) { return option.key; });
+
+
+
+			
+            // event listener for the dropdown. Update choropleth and legend when selection changes. Call createMapAndLegend() with required arguments.
+
+             d3.select("#gameDropdown").on('change',function (d) {
+                 var selectGame =d3.select(this).property('value');
+                 //console.log(selectGame);
+                 createMapAndLegend(world,gameData,selectGame);
+
+             });
+
+
+            // create Choropleth with default option. Call createMapAndLegend() with required arguments.
+
+            var defaul='6 nimmt!';
+			 // var defaul='Carcassonne';
+
+             createMapAndLegend(world,gameData,defaul);
+
+
+        }
+
+
+		// this function should create a Choropleth and legend using the world and gameData arguments for a selectedGame
+		// also use this function to update Choropleth and legend when a different game is selected from the dropdown
+        function createMapAndLegend(world, gameData, selectedGame){
+
+            var info={};
+            for (var i = 0; i < gameData.length; i++) {
+                  var datum = gameData[i];
+                    if (!info[datum.Game]) {
+                     info[datum.Game] = [];
+                       }
+                   info[datum.Game].push(datum['Average Rating']);
+                 };
+
+            //select game
+            var currentdf= gameData.filter(function (d) { return d.Game==selectedGame});
+			console.log(currentdf);
+
+            var maptodf=[];
+            var rating={};
+            world.features.forEach(function (d) {
+                currentdf.forEach(function (a) {
+                    if (a.Country==d.properties.name){
+                        maptodf.push(+a['Average Rating']);
+                        rating[a.Country]= +a['Average Rating'];
+                    }
+                })
+            });
+            updateLegend(maptodf);
+           //  console.log(rating);
+		   console.log(maptodf);
+
+
+            // add legend
+			svg2.attr("class", "legendQuant")
+			    .attr("transform", "translate(30,20)");
+		
+             function updateLegend(maptodf) {
+
+                 var Colorscale = d3.scaleQuantile().range(['#ffffcc','#a1dab4','#41b6c4','#225ea8']).domain([d3.min(maptodf),d3.max(maptodf)]);
+
+                 var legend = d3.legendColor().labelFormat(d3.format(".2f"))
+                     .scale(Colorscale);
+
+                 svg2.call(legend);
+             };
+
+
+            //update map and tooltip
+            var Colorscale = color.domain([d3.min(maptodf),d3.max(maptodf)]);
+
+            var showtip=tip.html(function (d) {
+                var tempi=currentdf.filter(function (m) { return m.Country==d.properties.name});
+                console.log(tempi.length);
+                if( tempi.length>0 ) {
+                    return "<strong style='color:white'>Country: </strong><span style='color:white'>" + tempi[0]['Country'] + "</span><br>" +
+                        "<strong style='color:white'>Game: </strong><span style='color:white'>" + tempi[0]['Game'] + "</span><br>" +
+                        "<strong style='color:white'>Avg Rating: </strong><span style='color:white'>" + tempi[0]['Average Rating'] + "</span><br>" +
+                        "<strong style='color:white'>Number of Users: </strong><span style='color:white'>" + tempi[0]['Number of Users'] + "</span><br>"
+
+                }
+            });
+			
+            svg1.call(showtip);
+			
+			// initialize
+			var all_path = svg1.append("g").attr('id', 'countries').attr("class", "countries");
+			
+			// fill path
+			 all_path.selectAll("path")
+                 .data(world.features)
+                 .enter().append("path")
+                 .style('stroke', '#006d2c')
+                 .style('opacity', 0.8)
+                 .style('stroke-width', 0.5)
+                  .attr("fill", function (d){
+                      var value=d.properties.name;
+                      if (value){
+                      return Colorscale(rating[d.properties.name]);}
+                      else{
+                          return "#ccc"
+                      }
+                  })
+                  .attr("d", path)
+                 .on('mouseover', function (d) {
+                     var value=d.properties.name;
+                     if (value.length>0){
+                     showtip.show(d);
+                     d3.select(this).style('opacity',1).style('stroke-width',3)}
+
+                 })
+              .on('mouseout', function (d) {
+                  var value=d.properties.name;
+                  if (value) {
+                  showtip.hide(d);
+                  d3.select(this).style('opacity',0.8).style('stroke-width',0.3)}
+
+              });
+			  
+			  
+			  
+			  
+			  
+			  
+
+        }
+
+
+    </script>
+
+</body>
+
+</html>

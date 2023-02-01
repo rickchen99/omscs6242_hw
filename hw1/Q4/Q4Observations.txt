@@ -1,0 +1,6 @@
+i.rows: 47
+ii.columns: 5
+iii.function: ngram-fingerprint, 120
+iv.if(value==null,"Unknown",value)
+v.if(toNumber(value)>90,1,0)
+vi.if(or(contains(toLowercase(value),"discount"),contains(toLowercase(value),"offer"),contains(toLowercase(value),"sale")),1,0)

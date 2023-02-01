@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+	  <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+    <style type="text/css">
+
+        .line{
+            fill:none;
+            stroke-width: 2;
+
+        }
+
+
+        .text{
+            font-size: 13px;
+
+        }
+        .label{
+            font-size: 20px;
+            font-family: Sans-Serif;
+            text-anchor: middle;
+            font-weight: bold;
+        }
+
+        @media print {
+            .pagebreak {page-break-before: always}
+
+        }
+    </style>
+</head>
+<body>
+
+    <script type="text/javascript">
+        // Color options
+		// var colorArray = [d3.schemeCategory10, d3.schemeAccent];
+		var color = d3.scaleOrdinal(d3.schemeCategory10);
+       // var color = function(i) {
+       //     var colors = ["#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3",
+        //                  "#a6d854", "#ffd92f", "#e5c494", "#b3b3b3"];
+      //      return colors[i % colors.length]
+      //  };
+
+        // Define the dimensions of the visualization.
+        var margin = {top: 80, right: 140, bottom: 50, left: 150},
+            width = (window.innerWidth - margin.left-margin.right)/1.5,
+            height = (window.innerHeight - margin.top - margin.bottom)/1.5;
+			
+		var parseYear=d3.timeParse("%Y-%m-%d")
+
+
+        var xscale = d3.scaleTime()
+            .range([0, width]);
+
+        var yscale = d3.scaleLinear()
+            .range([height, 0]);
+			
+        var parseYear=d3.timeParse("%Y-%m-%d")
+
+		var xAxis = d3.axisBottom()
+            .scale(xscale)
+            .ticks(d3.timeMonth.every(3))
+            .tickFormat(d3.timeFormat('%b %y'));
+
+        var yAxis = d3.axisLeft()
+            .scale(yscale);
+
+        var line = d3.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.temp); });
+
+        var svg = d3.select("body").append("svg")
+			.attr("id", 'svg-a')
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+			.attr("id", 'plot-a')
+            .attr("transform", "translate(" + margin.left +
+                  "," + margin.top + ")");
+
+        // Load data
+		// var datasets = d3.csv("boardgame_ratings.csv", function(data){console.log(data);});
+
+
+        xscale.domain([new Date('2016-11-01'), new Date('2020-08-01')]).range([0,width])
+        yscale.domain([0, 90000]).nice();
+
+        // Define the x axis and y axis
+        svg.append("g")
+			.attr('id', 'x-axis-a')
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis)
+			.append("text")
+			.attr("transform", "translate("+ (0)+"," + (0) +")")
+			//.attr("x", (width/2))
+			//.attr("y", height + 50)
+		 	.style("text-anchor", "middle")
+		 	.text("Month");
+
+        svg.append("g")
+			.attr('id', 'y-axis-a')
+			.attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+			.attr("transform", "rotate(-90)")
+			.attr("y", 50 - margin.left)
+			.attr("x", 0-(height/2))
+			.style("text-anchor", "middle")
+			.text("Num of Ratings");
+        //    .attr("transform", "rotate(-90)")
+         //   .attr("y", 9)
+         //   .text("Num of Ratings");
+
+
+		// Unify format
+        svg.selectAll(".axis line, .axis path")
+            .attr("fill", "none")
+            .attr("stroke", "#bbbbbb")
+            .attr("stroke-width", "2px")
+            .attr("shape-rendering", "crispEdges");
+
+        svg.selectAll(".axis text")
+            .attr("font-size", "14");
+
+        svg.selectAll(".axis .tick line")
+            .attr("stroke", "#d0d0d0")
+            .attr("stroke-width", "1");
+			
+			
+			
+			
+		// Load again for ploting
+		d3.dsv(',',"boardgame_ratings.csv",
+		    // reformat data
+			function (d) {
+			return {date: parseYear(d.date), l1: +d['Catan=count'], l2: +d['Dominion=count'], l3: +d['Codenames=count']
+			,l4: +d['Terraforming Mars=count'], l5: +d['Gloomhaven=count'], l6: +d['Magic: The Gathering=count'], l7: +d['Dixit=count'], l8: +d['Monopoly=count']};
+			}).then(function (data) {console.log(data);
+			
+			
+			
+			// start ploting
+			function test(data) {
+			for (var i = 0; i < 9; i++){
+			var temp_id = 11+i
+			var Line_temp=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.temp_id);});
+					 
+			svg.append('path').attr('class','line').data(data).attr('d',Line_temp(data)).style('stroke',color(i));
+			
+			svg.append("text")
+             .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l1) + ')')
+             .attr("dy", ".35em")
+		     .attr("text-anchor", "start")
+		     .style("fill", color(i))
+		     .text("Catan");
+
+			}  // end of for loop
+			};					
+			
+		 var Line1=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l1);});
+         var Line2=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l2);});
+
+         var Line3=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l3);});
+
+         var Line4=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l4);});
+
+         var Line5=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l5);});
+
+         var Line6=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l6);});
+
+         var Line7=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l7);});
+
+         var Line8=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l8);});
+
+         //add lines
+		 
+		 var all_lines = svg.append('g').attr('id', 'lines-a')
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-a').attr('stroke',color(1)).datum(data).attr("d", Line1);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-a') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l1) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(1)).text("Catan");
+		 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-a').attr('stroke',color(2)).datum(data).attr("d", Line2);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-a') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l2) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(2)).text("Dominion");
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-a').attr('stroke',color(3)).datum(data).attr("d", Line3);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-a') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l3) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(3)).text("Codenames");
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-a').attr('stroke',color(4)).datum(data).attr("d", Line4);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-a') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l4) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(4)).text("Terraforming Mars");
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-a').attr('stroke',color(5)).datum(data).attr("d", Line5);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-a') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l5) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(5)).text("Gloomhaven");
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-a').attr('stroke',color(6)).datum(data).attr("d", Line6);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-a') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l6) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(6)).text("Magic: The Gathering");
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-a').attr('stroke',color(7)).datum(data).attr("d", Line7);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-a') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l7) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(7)).text("Dixit");
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-a').attr('stroke',color(8)).datum(data).attr("d", Line8);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-a') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l8) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(1)).text("Monopoly");
+		 
+		 
+		 
+        svg.append('g').append("text")
+		.attr('id', 'lines-a')
+             .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l1) + ')')
+             .attr("dy", ".35em")
+		     .attr("text-anchor", "start")
+		     .attr("fill", color(1))
+		     .text("Catan");
+
+		svg.append('g').append("text")
+		.attr('id', 'lines-a')
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l2) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(2))
+		.text("Dominion");
+
+         svg.append('g').append("text")
+		 .attr('id', 'lines-a')
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l3) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(3))
+		.text("Codenames");
+
+         svg.append('g').append("text")
+		 .attr('id', 'lines-a')
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l4) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(4))
+		.text("Terraforming Mars");
+
+         svg.append('g').append("text")
+		 .attr('id', 'lines-a')
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l5) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(5))
+		.text("Gloomhaven");
+
+
+         svg.append('g').append("text")
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l6) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(6))
+		.text("Magic: The Gathering");
+
+         svg.append('g').append("text")
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l7) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(7))
+		.text("Dixit");
+
+         svg.append('g').append("text")
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l8) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(8))
+		.text("Monopoly");
+
+   
+
+
+		// add label and title
+	  //  svg.append("text").attr("transform", "translate("+ (0)+"," + (0) +")")
+		//					.attr('id','x-axis-a')
+		//					.attr('class','x label')
+		//					.attr("x", (width/2))
+		//					.attr("y", height + 50)
+		// 					.style("text-anchor", "middle")
+		// 					.text("Month");
+
+		//svg.append("text").attr("transform", "rotate(-90)").attr("y", 50 - margin.left)
+		//					.attr('class','y axis')
+		//					.attr('id','y-axis-a')
+		//					.attr("x", 0-(height/2))
+		//					.attr("dy", "1em")
+		//					.style("text-anchor", "middle")
+		//					.text("Num of Ratings");
+
+        svg.append("text").attr("x", (width/2))
+							.attr('id','title-a')
+							.attr('class','chart title')
+							.attr("y", -10)
+							.attr('class','label')
+							.text("Number of Ratings 2016-2020");
+			
+			}); // end of loading and plotting
+		
+	
+
+
+// End of part a
+
+   </script>
+   
+
+   
+	
+   <script type="text/javascript">
+   // part b
+
+
+        var svg2 = d3.select("body").append("svg")
+			.attr("id", 'svg-b')
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+			
+		svg2.append("text").attr("x", (width/2))
+			.attr('id','title-b')
+			.attr('class','chart title')
+			.attr("y", margin.top)
+			.attr('class','label')
+			.text("Number of Ratings 2016-2020");
+			
+	    //add legend
+         var prop=[{name:'Catan',color:color(1)}, {name:'Dominion',color:color(2)},{name:'Codenames',color:color(3)}
+             ,{name:'Terraforming Mars',color:color(4)},{name:'Gloomhaven',color:color(5)},{name:'Magic: The Gathering',color:color(6)},
+             {name:'Dixit',color:color(7)},{name:'Monopoly',color:color(8)}];
+
+          //add the legend
+         svg2.selectAll('rect').data(prop).enter().append('circle')
+             .attr('class','data-circle').attr('r',25)
+             .attr('class','text')
+             .attr('cx',width*1.2)
+            .attr('cy',height*1.1)
+             .style('fill','gray');
+
+
+         svg2.append('text').attr('x', width*1.2-15).attr('y',height*1.1+5).text('rank')
+         .attr("text-anchor", "start")
+		.style("fill", "white");
+
+         svg2.append('text').attr('x', width*1.15).attr('y',height+115).text('BoardGameGeek Rank')
+         .attr("text-anchor", "start").attr('class','text')
+		.style("fill", "black");
+
+		
+        svg2 = svg2.append("g")
+			.attr("id", 'plot-b')
+            .attr("transform", "translate(" + margin.left +
+                  "," + margin.top + ")");
+
+        // Load data
+		// var datasets = d3.csv("boardgame_ratings.csv", function(data){console.log(data);});
+
+
+        xscale.domain([new Date('2016-11-01'), new Date('2020-08-01')]).range([0,width])
+        yscale.domain([0, 90000]).nice();
+
+        // Define the x axis and y axis
+        svg2.append("g")
+			.attr('id', 'x-axis-b')
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis)
+			.append("text")
+			.attr("transform", "translate("+ (0)+"," + (0) +")")
+			//.attr("x", (width/2))
+			//.attr("y", height + 50)
+		 	.style("text-anchor", "middle")
+		 	.text("Month");
+
+        svg2.append("g")
+			.attr('id', 'y-axis-b')
+			.attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+			.attr("transform", "rotate(-90)")
+			.attr("y", 50 - margin.left)
+			.attr("x", 0-(height/2))
+			.style("text-anchor", "middle")
+			.text("Num of Ratings");
+        //    .attr("transform", "rotate(-90)")
+         //   .attr("y", 9)
+         //   .text("Num of Ratings");
+
+
+		// Unify format
+        svg2.selectAll(".axis line, .axis path")
+            .attr("fill", "none")
+            .attr("stroke", "#bbbbbb")
+            .attr("stroke-width", "2px")
+            .attr("shape-rendering", "crispEdges");
+
+        svg2.selectAll(".axis text")
+            .attr("font-size", "14");
+
+        svg2.selectAll(".axis .tick line")
+            .attr("stroke", "#d0d0d0")
+            .attr("stroke-width", "1");
+			
+			
+		// Load again for ploting
+		d3.dsv(',',"boardgame_ratings.csv",
+		    // reformat data
+			function (d) {
+			return {date: parseYear(d.date), l1: +d['Catan=count'], l2: +d['Dominion=count'], l3: +d['Codenames=count']
+			,l4: +d['Terraforming Mars=count'], l5: +d['Gloomhaven=count'], l6: +d['Magic: The Gathering=count'], l7: +d['Dixit=count'], l8: +d['Monopoly=count'],l11: +d['Catan=rank'], l33: +d['Codenames=rank'], l44: +d['Terraforming Mars=rank'], l55: +d['Gloomhaven=rank']};
+			}).then(function (data) {console.log(data);
+			
+			
+			
+			// start ploting
+			function test(data) {
+			for (var i = 0; i < 9; i++){
+			var temp_id = 11+i
+			var Line_temp=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.temp_id);});
+					 
+			svg2.append('path').attr('class','line').data(data).attr('d',Line_temp(data)).style('stroke',color(i));
+			
+			svg2.append("text")
+             .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l1) + ')')
+             .attr("dy", ".35em")
+		     .attr("text-anchor", "start")
+		     .style("fill", color(i))
+		     .text("Catan");
+
+			}  // end of for loop
+			};					
+			
+		 var Line1=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l1);});
+         var Line2=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l2);});
+
+         var Line3=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l3);});
+
+         var Line4=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l4);});
+
+         var Line5=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l5);});
+
+         var Line6=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l6);});
+
+         var Line7=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l7);});
+
+         var Line8=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale(d.l8);});
+
+         //add lines
+		 
+		 var all_lines = svg2.append('g').attr('id', 'lines-b')
+		 
+		 var all_symbols = svg2.append('g').attr('id', 'symbols-b')
+		 
+		 
+		 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-b').attr('stroke',color(1)).datum(data).attr("d", Line1);
+		 //
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-b') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l1) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(1)).text("Catan");
+		 //
+		 all_symbols.selectAll('line-circle')
+             .data(data)
+             .enter()
+			 .filter(function (d,i) { return (i+1)%3==0 & i!=0;})
+			 .append('circle')
+             .attr('class','data-circle').attr('r',13)
+             .attr('cx',Line1.x())
+             .attr('cy',Line1.y())
+             .style('fill',color(1));
+		//
+		all_symbols
+			 .selectAll('line').data(data).enter()
+             .filter(function(d, i) { return (i+1)%3==0 &i!=0;})
+			 //
+			 .append('text')
+             .classed('label',true)
+             .attr('dx',function (d,i) {return xscale(d.date)
+             })
+             .attr('dy',function (d,i) {return yscale(d.l1)+4
+             }).text(data => data.l11)
+			 .style('fill','white')
+             .attr('class','text')
+             .attr('text-anchor','middle');
+	
+		 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-b').attr('stroke',color(2)).datum(data).attr("d", Line2);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-b') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l2) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(2)).text("Dominion");
+		 
+		 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-b').attr('stroke',color(3)).datum(data).attr("d", Line3);
+		 //
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-b') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l3) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(3)).text("Codenames");
+		 //
+		 all_symbols.selectAll('line-circle')
+             .data(data)
+             .enter()
+			 .filter(function (d,i) { return (i+1)%3==0 & i!=0;})
+			 .append('circle')
+             .attr('class','data-circle').attr('r',10)
+             .attr('cx',Line3.x())
+             .attr('cy',Line3.y())
+             .style('fill',color(3));
+	    //
+		all_symbols
+			 .selectAll('line').data(data).enter()
+             .filter(function(d, i) { return (i+1)%3==0 &i!=0;})
+			 .append('text')
+             .classed('label',true)
+             .attr('dx',function (d,i) {return xscale(d.date)
+             })
+             .attr('dy',function (d,i) {return yscale(d.l3)+4
+             })
+			 .text(data => data.l33)
+             .style('fill','white')
+             .attr('class','text')
+             .attr('text-anchor','middle');
+			 
+			 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-b').attr('stroke',color(4)).datum(data).attr("d", Line4);
+		 //
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-b') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l4) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(4)).text("Terraforming Mars");
+		 //
+		 all_symbols.selectAll('line-circle')
+             .data(data)
+             .enter()
+			 .filter(function (d,i) { return (i+1)%3==0 & i!=0;})
+			 .append('circle')
+             .attr('class','data-circle').attr('r',10)
+             .attr('cx',Line4.x())
+             .attr('cy',Line4.y())
+             .style('fill',color(4));
+		//
+		all_symbols
+			 .selectAll('line').data(data).enter()
+             .filter(function(d, i) { return (i+1)%3==0 &i!=0;})
+			 .append('text')
+             .classed('label',true)
+             .attr('dx',function (d,i) {return xscale(d.date)
+             })
+             .attr('dy',function (d,i) {return yscale(d.l4)+4
+             }).text(data => data.l44)
+             .style('fill','white')
+             .attr('class','text')
+             .attr('text-anchor','middle');
+			 
+			 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-b').attr('stroke',color(5)).datum(data).attr("d", Line5);
+		 //
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-b') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l5) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(5)).text("Gloomhaven");
+		 //
+		 all_symbols.selectAll('line-circle')
+             .data(data)
+             .enter()
+			 .filter(function (d,i) { return (i+1)%3==0 & i!=0;})
+			 .append('circle')
+             .attr('class','data-circle').attr('r',10)
+             .attr('cx',Line5.x())
+             .attr('cy',Line5.y())
+             .style('fill',color(5));
+		//
+		all_symbols
+			 .selectAll('line').data(data).enter()
+             .filter(function(d, i) { return (i+1)%3==0 &i!=0;})
+			 .append('text')
+             .classed('label',true)
+             .attr('dx',function (d,i) {return xscale(d.date)
+             })
+             .attr('dy',function (d,i) {return yscale(d.l5)+4
+             }).text(data => data.l55)
+             .style('fill','white')
+             .attr('class','text')
+             .attr('text-anchor','middle');
+		 
+		 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-b').attr('stroke',color(6)).datum(data).attr("d", Line6);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-b') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l6) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(6)).text("Magic: The Gathering");
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-b').attr('stroke',color(7)).datum(data).attr("d", Line7);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-b') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l7) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(7)).text("Dixit");
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-b').attr('stroke',color(8)).datum(data).attr("d", Line8);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-b') .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l8) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(1)).text("Monopoly");
+		 
+		 
+		 
+        svg2.append('g').append("text")
+		.attr('id', 'lines-b')
+             .attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l1) + ')')
+             .attr("dy", ".35em")
+		     .attr("text-anchor", "start")
+		     .attr("fill", color(1))
+		     .text("Catan");
+
+		svg2.append('g').append("text")
+		.attr('id', 'lines-b')
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l2) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(2))
+		.text("Dominion");
+
+         svg2.append('g').append("text")
+		 .attr('id', 'lines-b')
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l3) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(3))
+		.text("Codenames");
+
+         svg2.append('g').append("text")
+		 .attr('id', 'lines-b')
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l4) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(4))
+		.text("Terraforming Mars");
+
+         svg2.append('g').append("text")
+		 .attr('id', 'lines-b')
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l5) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(5))
+		.text("Gloomhaven");
+
+
+         svg2.append('g').append("text")
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l6) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(6))
+		.text("Magic: The Gathering");
+
+         svg2.append('g').append("text")
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l7) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(7))
+		.text("Dixit");
+
+         svg2.append('g').append("text")
+		.attr('transform','translate(' + (width+5) + ',' + yscale(data[data.length-1].l8) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(8))
+		.text("Monopoly");
+		
+
+
+			
+			}); // end of loading and plotting
+		
+	
+
+
+    </script>	
+	
+	
+	
+   <script type="text/javascript">
+   // part c - 1
+
+
+        var svg3 = d3.select("body").append("svg")
+			.attr("id", 'svg-c-1')
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+			
+		svg3.append("text").attr("x", (width/2))
+			.attr('id','title-c-1')
+			.attr('class','chart title')
+			.attr("y", margin.top)
+			.attr('class','label')
+			.text("Number of Ratings 2016-2020 (Square root Scale)");
+			
+	    //add legend
+         var prop=[{name:'Catan',color:color(1)}, {name:'Dominion',color:color(2)},{name:'Codenames',color:color(3)}
+             ,{name:'Terraforming Mars',color:color(4)},{name:'Gloomhaven',color:color(5)},{name:'Magic: The Gathering',color:color(6)},
+             {name:'Dixit',color:color(7)},{name:'Monopoly',color:color(8)}];
+
+          //add the legend
+         svg3.selectAll('rect').data(prop).enter().append('circle')
+             .attr('class','data-circle').attr('r',25)
+             .attr('class','text')
+             .attr('cx',width*1.2)
+            .attr('cy',height*1.1)
+             .style('fill','gray');
+
+
+         svg3.append('text').attr('x', width*1.2-15).attr('y',height*1.1+5).text('rank')
+         .attr("text-anchor", "start")
+		.style("fill", "white");
+
+         svg3.append('text').attr('x', width*1.15).attr('y',height+115).text('BoardGameGeek Rank')
+         .attr("text-anchor", "start").attr('class','text')
+		.style("fill", "black");
+
+		
+        svg3 = svg3.append("g")
+			.attr("id", 'plot-c-1')
+            .attr("transform", "translate(" + margin.left +
+                  "," + margin.top + ")");
+
+        // Load data
+		// var datasets = d3.csv("boardgame_ratings.csv", function(data){console.log(data);});
+
+        xscale.domain([new Date('2016-11-01'), new Date('2020-08-01')]).range([0,width])
+        //yscale_c.domain([0, 90000]).nice();
+
+        // Define the x axis and y axis
+        svg3.append("g")
+			.attr('id', 'x-axis-c-1')
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis)
+			.append("text")
+			.attr("transform", "translate("+ (0)+"," + (0) +")")
+			//.attr("x", (width/2))
+			//.attr("y", height + 50)
+		 	.style("text-anchor", "middle")
+		 	.text("Month");
+
+
+        //    .attr("transform", "rotate(-90)")
+         //   .attr("y", 9)
+         //   .text("Num of Ratings");
+
+
+		// Unify format
+        svg3.selectAll(".axis line, .axis path")
+            .attr("fill", "none")
+            .attr("stroke", "#bbbbbb")
+            .attr("stroke-width", "2px")
+            .attr("shape-rendering", "crispEdges");
+
+        svg3.selectAll(".axis text")
+            .attr("font-size", "14");
+
+        svg3.selectAll(".axis .tick line")
+            .attr("stroke", "#d0d0d0")
+            .attr("stroke-width", "1");
+			
+			
+		// Load again for ploting
+		d3.dsv(',',"boardgame_ratings.csv",
+		    // reformat data
+			function (d) {
+			return {date: parseYear(d.date), l1: +d['Catan=count'], l2: +d['Dominion=count'], l3: +d['Codenames=count']
+			,l4: +d['Terraforming Mars=count'], l5: +d['Gloomhaven=count'], l6: +d['Magic: The Gathering=count'], l7: +d['Dixit=count'], l8: +d['Monopoly=count'],l11: +d['Catan=rank'], l33: +d['Codenames=rank'], l44: +d['Terraforming Mars=rank'], l55: +d['Gloomhaven=rank']};
+			}).then(function (data) {console.log(data);
+			
+            var yscale_c = d3.scaleSqrt().domain([0,d3.max(data,function (d) {return Math.max(d.l1,d.l2,d.l3,d.l4,d.l5,d.l6,d.l7,d.l8);
+            })]).range([height,0]);	
+
+			var yAxis = d3.axisLeft()
+            .scale(yscale_c);
+			
+			svg3.append("g")
+			.attr('id', 'y-axis-c-1')
+			.attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+			.attr("transform", "rotate(-90)")
+			.attr("y", 50 - margin.left)
+			.attr("x", 0-(height/2))
+			.style("text-anchor", "middle")
+			.text("Num of Ratings");
+			
+			// start ploting
+			function test(data) {
+			for (var i = 0; i < 9; i++){
+			var temp_id = 11+i
+			var Line_temp=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.temp_id);});
+					 
+			svg3.append('path').attr('class','line').data(data).attr('d',Line_temp(data)).style('stroke',color(i));
+			
+			svg3.append("text")
+             .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l1) + ')')
+             .attr("dy", ".35em")
+		     .attr("text-anchor", "start")
+		     .style("fill", color(i))
+		     .text("Catan");
+
+			}  // end of for loop
+			};					
+			
+		 var Line1=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l1);});
+         var Line2=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l2);});
+
+         var Line3=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l3);});
+
+         var Line4=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l4);});
+
+         var Line5=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l5);});
+
+         var Line6=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l6);});
+
+         var Line7=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l7);});
+
+         var Line8=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l8);});
+
+         //add lines
+		 
+		 var all_lines = svg3.append('g').attr('id', 'lines-c-1')
+		 
+		 var all_symbols = svg3.append('g').attr('id', 'symbols-c-1')
+		 
+
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-1').attr('stroke',color(1)).datum(data).attr("d", Line1);
+		 //
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-1') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l1) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(1)).text("Catan");
+		 //
+		 all_symbols.selectAll('line-circle')
+             .data(data)
+             .enter()
+			 .filter(function (d,i) { return (i+1)%3==0 & i!=0;})
+			 .append('circle')
+             .attr('class','data-circle').attr('r',13)
+             .attr('cx',Line1.x())
+             .attr('cy',Line1.y())
+             .style('fill',color(1));
+		//
+		all_symbols
+			 .selectAll('line').data(data).enter()
+             .filter(function(d, i) { return (i+1)%3==0 &i!=0;})
+			 //
+			 .append('text')
+             .classed('label',true)
+             .attr('dx',function (d,i) {return xscale(d.date)
+             })
+             .attr('dy',function (d,i) {return yscale_c(d.l1)+4
+             }).text(data => data.l11)
+			 .style('fill','white')
+             .attr('class','text')
+             .attr('text-anchor','middle');
+	
+		 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-1').attr('stroke',color(2)).datum(data).attr("d", Line2);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-1') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l2) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(2)).text("Dominion");
+		 
+		 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-1').attr('stroke',color(3)).datum(data).attr("d", Line3);
+		 //
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-1') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l3) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(3)).text("Codenames");
+		 //
+		 all_symbols.selectAll('line-circle')
+             .data(data)
+             .enter()
+			 .filter(function (d,i) { return (i+1)%3==0 & i!=0;})
+			 .append('circle')
+             .attr('class','data-circle').attr('r',10)
+             .attr('cx',Line3.x())
+             .attr('cy',Line3.y())
+             .style('fill',color(3));
+	    //
+		all_symbols
+			 .selectAll('line').data(data).enter()
+             .filter(function(d, i) { return (i+1)%3==0 &i!=0;})
+			 .append('text')
+             .classed('label',true)
+             .attr('dx',function (d,i) {return xscale(d.date)
+             })
+             .attr('dy',function (d,i) {return yscale_c(d.l3)+4
+             })
+			 .text(data => data.l33)
+             .style('fill','white')
+             .attr('class','text')
+             .attr('text-anchor','middle');
+			 
+			 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-1').attr('stroke',color(4)).datum(data).attr("d", Line4);
+		 //
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-1') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l4) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(4)).text("Terraforming Mars");
+		 //
+		 all_symbols.selectAll('line-circle')
+             .data(data)
+             .enter()
+			 .filter(function (d,i) { return (i+1)%3==0 & i!=0;})
+			 .append('circle')
+             .attr('class','data-circle').attr('r',10)
+             .attr('cx',Line4.x())
+             .attr('cy',Line4.y())
+             .style('fill',color(4));
+		//
+		all_symbols
+			 .selectAll('line').data(data).enter()
+             .filter(function(d, i) { return (i+1)%3==0 &i!=0;})
+			 .append('text')
+             .classed('label',true)
+             .attr('dx',function (d,i) {return xscale(d.date)
+             })
+             .attr('dy',function (d,i) {return yscale_c(d.l4)+4
+             }).text(data => data.l44)
+             .style('fill','white')
+             .attr('class','text')
+             .attr('text-anchor','middle');
+			 
+			 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-1').attr('stroke',color(5)).datum(data).attr("d", Line5);
+		 //
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-1') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l5) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(5)).text("Gloomhaven");
+		 //
+		 all_symbols.selectAll('line-circle')
+             .data(data)
+             .enter()
+			 .filter(function (d,i) { return (i+1)%3==0 & i!=0;})
+			 .append('circle')
+             .attr('class','data-circle').attr('r',10)
+             .attr('cx',Line5.x())
+             .attr('cy',Line5.y())
+             .style('fill',color(5));
+		//
+		all_symbols
+			 .selectAll('line').data(data).enter()
+             .filter(function(d, i) { return (i+1)%3==0 &i!=0;})
+			 .append('text')
+             .classed('label',true)
+             .attr('dx',function (d,i) {return xscale(d.date)
+             })
+             .attr('dy',function (d,i) {return yscale_c(d.l5)+4
+             }).text(data => data.l55)
+             .style('fill','white')
+             .attr('class','text')
+             .attr('text-anchor','middle');
+		 
+		 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-1').attr('stroke',color(6)).datum(data).attr("d", Line6);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-1') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l6) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(6)).text("Magic: The Gathering");
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-1').attr('stroke',color(7)).datum(data).attr("d", Line7);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-1') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l7) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(7)).text("Dixit");
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-1').attr('stroke',color(8)).datum(data).attr("d", Line8);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-1') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l8) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(1)).text("Monopoly");
+		 
+		 
+		 
+        svg3.append('g').append("text")
+		.attr('id', 'lines-b')
+             .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l1) + ')')
+             .attr("dy", ".35em")
+		     .attr("text-anchor", "start")
+		     .attr("fill", color(1))
+		     .text("Catan");
+
+		svg3.append('g').append("text")
+		.attr('id', 'lines-b')
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l2) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(2))
+		.text("Dominion");
+
+         svg3.append('g').append("text")
+		 .attr('id', 'lines-b')
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l3) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(3))
+		.text("Codenames");
+
+         svg3.append('g').append("text")
+		 .attr('id', 'lines-b')
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l4) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(4))
+		.text("Terraforming Mars");
+
+         svg3.append('g').append("text")
+		 .attr('id', 'lines-b')
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l5) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(5))
+		.text("Gloomhaven");
+
+
+         svg3.append('g').append("text")
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l6) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(6))
+		.text("Magic: The Gathering");
+
+         svg3.append('g').append("text")
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l7) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(7))
+		.text("Dixit");
+
+         svg3.append('g').append("text")
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l8) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(8))
+		.text("Monopoly");
+		
+
+
+			
+			}); // end of loading and plotting
+		
+	
+
+
+    </script>		
+	
+	
+	
+   <script type="text/javascript">
+   // part c-2
+
+
+        var svg4 = d3.select("body").append("svg")
+			.attr("id", 'svg-c-2')
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+			
+		svg4.append("text").attr("x", (width/2))
+			.attr('id','title-c-2')
+			.attr('class','chart title')
+			.attr("y", margin.top)
+			.attr('class','label')
+			.text("Number of Ratings 2016-2020 (Log Scale)");
+			
+	    //add legend
+         var prop=[{name:'Catan',color:color(1)}, {name:'Dominion',color:color(2)},{name:'Codenames',color:color(3)}
+             ,{name:'Terraforming Mars',color:color(4)},{name:'Gloomhaven',color:color(5)},{name:'Magic: The Gathering',color:color(6)},
+             {name:'Dixit',color:color(7)},{name:'Monopoly',color:color(8)}];
+
+          //add the legend
+         svg4.selectAll('rect').data(prop).enter().append('circle')
+             .attr('class','data-circle').attr('r',25)
+             .attr('class','text')
+             .attr('cx',width*1.2)
+            .attr('cy',height*1.1)
+             .style('fill','gray');
+
+
+         svg4.append('text').attr('x', width*1.2-15).attr('y',height*1.1+5).text('rank')
+         .attr("text-anchor", "start")
+		.style("fill", "white");
+
+         svg4.append('text').attr('x', width*1.15).attr('y',height+115).text('BoardGameGeek Rank')
+         .attr("text-anchor", "start").attr('class','text')
+		.style("fill", "black");
+
+		
+        svg4 = svg4.append("g")
+			.attr("id", 'plot-c-2')
+            .attr("transform", "translate(" + margin.left +
+                  "," + margin.top + ")");
+
+        // Load data
+		// var datasets = d3.csv("boardgame_ratings.csv", function(data){console.log(data);});
+
+
+        xscale.domain([new Date('2016-11-01'), new Date('2020-08-01')]).range([0,width])
+//        yscale_c.domain([0, 90000]).nice();
+        
+	
+
+
+        // Define the x axis and y axis
+        svg4.append("g")
+			.attr('id', 'x-axis-c-2')
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis)
+			.append("text")
+			.attr("transform", "translate("+ (0)+"," + (0) +")")
+			//.attr("x", (width/2))
+			//.attr("y", height + 50)
+		 	.style("text-anchor", "middle")
+		 	.text("Month");
+
+
+        //    .attr("transform", "rotate(-90)")
+         //   .attr("y", 9)
+         //   .text("Num of Ratings");
+
+
+		// Unify format
+        svg4.selectAll(".axis line, .axis path")
+            .attr("fill", "none")
+            .attr("stroke", "#bbbbbb")
+            .attr("stroke-width", "2px")
+            .attr("shape-rendering", "crispEdges");
+
+        svg4.selectAll(".axis text")
+            .attr("font-size", "14");
+
+        svg4.selectAll(".axis .tick line")
+            .attr("stroke", "#d0d0d0")
+            .attr("stroke-width", "1");
+			
+			
+		// Load again for ploting
+		d3.dsv(',',"boardgame_ratings.csv",
+		    // reformat data
+			function (d) {
+			return {date: parseYear(d.date), l1: +d['Catan=count'], l2: +d['Dominion=count'], l3: +d['Codenames=count']
+			,l4: +d['Terraforming Mars=count'], l5: +d['Gloomhaven=count'], l6: +d['Magic: The Gathering=count'], l7: +d['Dixit=count'], l8: +d['Monopoly=count'],l11: +d['Catan=rank'], l33: +d['Codenames=rank'], l44: +d['Terraforming Mars=rank'], l55: +d['Gloomhaven=rank']};
+			}).then(function (data) {console.log(data);
+			
+            var yscale_c = d3.scaleLog()
+             .clamp(true).domain([1e-1,1e+6]).range([height,0]);	
+			 
+			var yAxis = d3.axisLeft()
+            .scale(yscale_c);
+
+			svg4.append("g")
+			.attr('id', 'y-axis-c-2')
+			.attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+			.attr("transform", "rotate(-90)")
+			.attr("y", 50 - margin.left)
+			.attr("x", 0-(height/2))
+			.style("text-anchor", "middle")
+			.text("Num of Ratings");
+			
+			// start ploting
+			function test(data) {
+			for (var i = 0; i < 9; i++){
+			var temp_id = 11+i
+			var Line_temp=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.temp_id);});
+					 
+			svg4.append('path').attr('class','line').data(data).attr('d',Line_temp(data)).style('stroke',color(i));
+			
+			svg4.append("text")
+             .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l1) + ')')
+             .attr("dy", ".35em")
+		     .attr("text-anchor", "start")
+		     .style("fill", color(i))
+		     .text("Catan");
+
+			}  // end of for loop
+			};					
+			
+		 var Line1=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l1);});
+         var Line2=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l2);});
+
+         var Line3=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l3);});
+
+         var Line4=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l4);});
+
+         var Line5=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l5);});
+
+         var Line6=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l6);});
+
+         var Line7=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l7);});
+
+         var Line8=d3.line()
+                     .x(function (d) { return xscale(d.date);})
+                     .y(function (d) { return yscale_c(d.l8);});
+
+         //add lines
+		 
+		 var all_lines = svg4.append('g').attr('id', 'lines-c-2')
+		 
+		 var all_symbols = svg4.append('g').attr('id', 'symbols-c-2')
+		 
+		 
+		 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-2').attr('stroke',color(1)).datum(data).attr("d", Line1);
+		 //
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-2') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l1) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(1)).text("Catan");
+		 //
+		 all_symbols.selectAll('line-circle')
+             .data(data)
+             .enter()
+			 .filter(function (d,i) { return (i+1)%3==0 & i!=0;})
+			 .append('circle')
+             .attr('class','data-circle').attr('r',13)
+             .attr('cx',Line1.x())
+             .attr('cy',Line1.y())
+             .style('fill',color(1));
+		//
+		all_symbols
+			 .selectAll('line').data(data).enter()
+             .filter(function(d, i) { return (i+1)%3==0 &i!=0;})
+			 //
+			 .append('text')
+             .classed('label',true)
+             .attr('dx',function (d,i) {return xscale(d.date)
+             })
+             .attr('dy',function (d,i) {return yscale_c(d.l1)+4
+             }).text(data => data.l11)
+			 .style('fill','white')
+             .attr('class','text')
+             .attr('text-anchor','middle');
+	
+		 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-2').attr('stroke',color(2)).datum(data).attr("d", Line2);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-2') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l2) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(2)).text("Dominion");
+		 
+		 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-2').attr('stroke',color(3)).datum(data).attr("d", Line3);
+		 //
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-2') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l3) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(3)).text("Codenames");
+		 //
+		 all_symbols.selectAll('line-circle')
+             .data(data)
+             .enter()
+			 .filter(function (d,i) { return (i+1)%3==0 & i!=0;})
+			 .append('circle')
+             .attr('class','data-circle').attr('r',10)
+             .attr('cx',Line3.x())
+             .attr('cy',Line3.y())
+             .style('fill',color(3));
+	    //
+		all_symbols
+			 .selectAll('line').data(data).enter()
+             .filter(function(d, i) { return (i+1)%3==0 &i!=0;})
+			 .append('text')
+             .classed('label',true)
+             .attr('dx',function (d,i) {return xscale(d.date)
+             })
+             .attr('dy',function (d,i) {return yscale_c(d.l3)+4
+             })
+			 .text(data => data.l33)
+             .style('fill','white')
+             .attr('class','text')
+             .attr('text-anchor','middle');
+			 
+			 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-2').attr('stroke',color(4)).datum(data).attr("d", Line4);
+		 //
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-2') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l4) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(4)).text("Terraforming Mars");
+		 //
+		 all_symbols.selectAll('line-circle')
+             .data(data)
+             .enter()
+			 .filter(function (d,i) { return (i+1)%3==0 & i!=0;})
+			 .append('circle')
+             .attr('class','data-circle').attr('r',10)
+             .attr('cx',Line4.x())
+             .attr('cy',Line4.y())
+             .style('fill',color(4));
+		//
+		all_symbols
+			 .selectAll('line').data(data).enter()
+             .filter(function(d, i) { return (i+1)%3==0 &i!=0;})
+			 .append('text')
+             .classed('label',true)
+             .attr('dx',function (d,i) {return xscale(d.date)
+             })
+             .attr('dy',function (d,i) {return yscale_c(d.l4)+4
+             }).text(data => data.l44)
+             .style('fill','white')
+             .attr('class','text')
+             .attr('text-anchor','middle');
+			 
+			 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-2').attr('stroke',color(5)).datum(data).attr("d", Line5);
+		 //
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-2') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l5) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(5)).text("Gloomhaven");
+		 //
+		 all_symbols.selectAll('line-circle')
+             .data(data)
+             .enter()
+			 .filter(function (d,i) { return (i+1)%3==0 & i!=0;})
+			 .append('circle')
+             .attr('class','data-circle').attr('r',10)
+             .attr('cx',Line5.x())
+             .attr('cy',Line5.y())
+             .style('fill',color(5));
+		//
+		all_symbols
+			 .selectAll('line').data(data).enter()
+             .filter(function(d, i) { return (i+1)%3==0 &i!=0;})
+			 .append('text')
+             .classed('label',true)
+             .attr('dx',function (d,i) {return xscale(d.date)
+             })
+             .attr('dy',function (d,i) {return yscale_c(d.l5)+4
+             }).text(data => data.l55)
+             .style('fill','white')
+             .attr('class','text')
+             .attr('text-anchor','middle');
+		 
+		 
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-2').attr('stroke',color(6)).datum(data).attr("d", Line6);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-2') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l6) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(6)).text("Magic: The Gathering");
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-2').attr('stroke',color(7)).datum(data).attr("d", Line7);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-2') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l7) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(7)).text("Dixit");
+		 
+		 all_lines.append('path').attr('class','line').attr('id', 'lines-c-2').attr('stroke',color(8)).datum(data).attr("d", Line8);
+		 all_lines.append("text").attr('class','line').attr('id', 'lines-c-2') .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l8) + ')').attr("dy", ".35em").attr("text-anchor", "start").attr("fill", color(1)).text("Monopoly");
+		 
+		 
+		 
+        svg4.append('g').append("text")
+		.attr('id', 'lines-b')
+             .attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l1) + ')')
+             .attr("dy", ".35em")
+		     .attr("text-anchor", "start")
+		     .attr("fill", color(1))
+		     .text("Catan");
+
+		svg4.append('g').append("text")
+		.attr('id', 'lines-b')
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l2) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(2))
+		.text("Dominion");
+
+         svg4.append('g').append("text")
+		 .attr('id', 'lines-b')
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l3) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(3))
+		.text("Codenames");
+
+         svg4.append('g').append("text")
+		 .attr('id', 'lines-b')
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l4) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(4))
+		.text("Terraforming Mars");
+
+         svg4.append('g').append("text")
+		 .attr('id', 'lines-b')
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l5) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(5))
+		.text("Gloomhaven");
+
+
+         svg4.append('g').append("text")
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l6) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(6))
+		.text("Magic: The Gathering");
+
+         svg4.append('g').append("text")
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l7) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(7))
+		.text("Dixit");
+
+         svg4.append('g').append("text")
+		.attr('transform','translate(' + (width+5) + ',' + yscale_c(data[data.length-1].l8) + ')')
+		.attr("dy", ".35em")
+		.attr("text-anchor", "start")
+		.attr("fill", color(8))
+		.text("Monopoly");
+		
+
+
+			
+			}); // end of loading and plotting
+		
+	
+
+
+    </script>			
+
+	
+	
+	
+	
+	
+ 
+<div id='signature'>hchen652</div>		
+	
+</body>
+</html>
